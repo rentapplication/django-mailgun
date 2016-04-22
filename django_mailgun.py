@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import copy
+
 import six
 import requests
 from django.conf import settings
@@ -100,6 +102,8 @@ class MailgunBackend(BaseEmailBackend):
         """A helper method that does the actual sending."""
         if not email_message.recipients():
             return False
+
+        original_email_message = copy.deepcopy(email_message)
         from_email = sanitize_address(email_message.from_email, email_message.encoding)
 
         to_recipients = [sanitize_address(addr, email_message.encoding)
@@ -157,6 +161,10 @@ class MailgunBackend(BaseEmailBackend):
             if not self.fail_silently:
                 raise
             return False
+
+        mailgun_response_hook =  getattr(settings, 'MAILGUN_RESPONSE_HOOK')
+        if mailgun_response_hook:
+            mailgun_response_hook(response, original_email_message)
 
         if response.status_code != 200:
             if not self.fail_silently:
