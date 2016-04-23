@@ -162,7 +162,7 @@ class MailgunBackend(BaseEmailBackend):
                 raise
             return False
 
-        mailgun_response_hook =  getattr(settings, 'MAILGUN_RESPONSE_HOOK')
+        mailgun_response_hook =  getattr(settings, 'MAILGUN_RESPONSE_HOOK', None)
         if mailgun_response_hook:
             mailgun_response_hook(response, original_email_message)
 
