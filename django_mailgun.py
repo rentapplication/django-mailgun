@@ -108,7 +108,8 @@ class MailgunBackend(BaseEmailBackend):
 
         to_recipients = [sanitize_address(addr, email_message.encoding)
                       for addr in email_message.to]
-
+        response = None
+        error = None
         try:
             post_data = []
             post_data.append(('to', (",".join(to_recipients)),))
@@ -157,14 +158,15 @@ class MailgunBackend(BaseEmailBackend):
             response = requests.post(self._api_url + "messages",
                     auth=("api", self._access_key),
                     data=content, headers=headers)
-        except:
+        except Exception, e:
+            error = e
             if not self.fail_silently:
                 raise
             return False
-
-        mailgun_response_hook =  getattr(settings, 'MAILGUN_RESPONSE_HOOK', None)
-        if mailgun_response_hook:
-            mailgun_response_hook(response, original_email_message)
+        finally:
+            mailgun_response_hook = getattr(settings, 'MAILGUN_RESPONSE_HOOK', None)
+            if mailgun_response_hook:
+                mailgun_response_hook(original_email_message, response, error)
 
         if response.status_code != 200:
             if not self.fail_silently:
