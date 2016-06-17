@@ -119,7 +119,10 @@ class MailgunBackend(BaseEmailBackend):
             if email_message.cc:
                 cc_recipients = [sanitize_address(addr, email_message.encoding) for addr in email_message.cc]
                 post_data.append(('cc', (",".join(cc_recipients)),))
-            post_data.append(('text', email_message.body,))
+            if email_message.content_subtype == "html":
+                post_data.append(('html', email_message.body,))
+            else:
+                post_data.append(('text', email_message.body,))
             post_data.append(('subject', email_message.subject,))
             post_data.append(('from', from_email,))
             # get our recipient variables if they were passed in
